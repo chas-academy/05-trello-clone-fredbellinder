@@ -1,6 +1,6 @@
 import $ from 'jquery';
 
-// require('webpack-jquery-ui');
+require('webpack-jquery-ui');
 import '../css/styles.css';
 
 /**
@@ -10,7 +10,7 @@ import '../css/styles.css';
 
 // Här tillämpar vi mönstret reavealing module pattern:
 // Mer information om det mönstret här: https://bit.ly/1nt5vXP
-const jtrello = (function() {
+const jtrello = (function () {
   "use strict"; // https://lucybain.com/blog/2014/js-use-strict/
 
   // Referens internt i modulen för DOM element
@@ -23,7 +23,7 @@ const jtrello = (function() {
     DOM.$columns = $('.column');
     DOM.$lists = $('.list');
     DOM.$cards = $('.card');
-    
+
     DOM.$newListButton = $('button#new-list');
     DOM.$deleteListButton = $('.list-header > button.delete');
 
@@ -31,8 +31,8 @@ const jtrello = (function() {
     DOM.$deleteCardButton = $('.card > button.delete');
   }
 
-  function createTabs() {}
-  function createDialogs() {}
+  function createTabs() { }
+  function createDialogs() { }
 
   /*
   *  Denna metod kommer nyttja variabeln DOM för att binda eventlyssnare till
@@ -50,30 +50,39 @@ const jtrello = (function() {
   function createList() {
     event.preventDefault();
     console.log("This should create a new list");
+    let listTemplate = "<div class='column'><div class='list'><div class='list-header'>Done<button class='button delete'>X</button></div><ul class='list-cards'><li class='card'>Card #3<button class='button delete'>X</button></li><li class='add-new'><form class='new-card' action='index.html'><input type='text' name='title' placeholder='Please name the card' /><button class='button add'>Add new card</button></form></li></ul></div></div>";
+    $('div.board').append(listTemplate);
+    // .append(listTemplate);
   }
 
   function deleteList() {
     console.log("This should delete the list you clicked on");
+    $(this).closest('div.list').remove();
   }
 
   /* =========== Metoder för att hantera kort i listor nedan =========== */
   function createCard(event) {
     event.preventDefault();
-    console.log("This should create a new card");
+    $(this).closest('ul.list-cards').prepend("<li class='card'>" + event.originalEvent.path[0].title.value + "<button class='button delete'>X</button>");
+    let deleteCardButton = $(this).addClass('eventClass');
+    $('button.eventClass').on('click', deleteCard);
+    deleteCardButton.removeClass('eventClass');
   }
 
   function deleteCard() {
     console.log("This should delete the card you clicked on");
+    $(this).closest('li.card').remove();
   }
 
   // Metod för att rita ut element i DOM:en
-  function render() {}
+  function render() {
 
+  }
   /* =================== Publika metoder nedan ================== */
 
   // Init metod som körs först
   function init() {
-    console.log(':::: Initializing JTrello ::::');
+    console.log(':::: Initializing JTrello :::: FROM APPJS');
     // Förslag på privata metoder
     captureDOMEls();
     createTabs();
@@ -89,6 +98,6 @@ const jtrello = (function() {
 })();
 
 //usage
-$("document").ready(function() {
+$("document").ready(function () {
   jtrello.init();
 });
