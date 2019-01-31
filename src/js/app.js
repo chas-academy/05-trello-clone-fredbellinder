@@ -34,7 +34,9 @@ const jtrello = (function () {
   }
 
   function createTabs() { }
-  function createDialogs() { }
+  function createDialogs() {
+
+  }
 
   /*
   *  Denna metod kommer nyttja variabeln DOM för att binda eventlyssnare till
@@ -46,106 +48,86 @@ const jtrello = (function () {
 
     DOM.$newCardForm.on('submit', jtrello.new_card);
     DOM.$deleteCardButton.on('click', jtrello.del_card);
-
-    // ska bli droppable
-
-    // $('body').droppable({
-    //   drop: function () {
-    //     console.log(`dropped on ${this}`);
-    //   }
-    // });
-
-    // DOM.$cards.draggable({
-    //   containment: "body",
-    //   cursor: "pointer",
-    //   scroll: false,
-    //   // appendTo: "div.list",
-    //   zIndex: 100
-    // }); // ska bli draggable
-    // DOM.$board.draggable();
-    // $('.droppable-fit').droppable({
-    //   tolerance: 'fit',
-    //   drop: function(){
-
-    //   },
-    // });
-    // $('*').draggable();
-
   }
 
-
-  function setDroppable(num) {
-    let victim = `div.list.list-${num}`
-    // $(victim).sortable({
-    // connectWith: 'li.card',
-    // accept: "li.card",
-    // tolerance: 'pointer',
-    // drop: function (event, ui) {
-    //   let direction = $('div ul').first().append(ui);
-    //   console.log(this, ui, direction, event);
-    // },
-    // greedy: true
-
-    // });
+  function listCounter() {
+    let listLength = $('li.column').length;
+    return listLength;
   }
 
-  function setSortable(classToSort) {
+  function setCardsSortable(classToSort) {
     let victim = classToSort;
     console.log('dragger')
     $(victim).sortable({
       connectWith: classToSort,
-      change: function (event, ui) { },
-      // appendTo: this,
-      // // helper: "parent",
-      // revert: 'invalid',
-      // revertDuration: 500,
-      // // containment: ".list", //Begränsar dig till ett element
-      // // appendTo: "li.card",
-      cursor: "pointer",
-      // scroll: false,
-      // zIndex: 100
+      cursor: "pointer"
     });
   }
 
+  function setListsSortable(classToSort) {
+    let victim = classToSort;
+    console.log('dragger')
+    $(victim).sortable({
+      connectWith: classToSort,
+    });
+  }
+
+  $('.board1').sortable({
+    axis: 'x'
+  })
+
+
   /* ============== Metoder för att hantera listor nedan ============== */
   function createList(event) {
-    //$('#list-creation-dialog :input')[0].value <--denna ska funka för addnewlistknappen sen, men inte enter-tryck :(
-    if (event != undefined) {
+    //$('#list-creation-dialog :inpuzt')[0].value <--denna ska funka för addnewlistknappen sen, men inte enter-tryck :(
+    event.preventDefault();
+    let listCount = listCounter();
+    if (listCount >= 3) {
+      console.log('Maximum number of lists exceeded');
+    } else {
       console.log(event);
-      event.preventDefault();
-      let createEventList = event.originalEvent.path[0].title.value;
-      console.log(createEventList, $('#list-creation-dialog :input'));
-      let listTemplate =
-        `<div class='column column-${uniquityCount}'>
-        <div class='list list-${uniquityCount} '>
+      if (event != undefined) {
+        event.preventDefault();
+        let createEventList = event.originalEvent.path[0].title.value;
+        // console.log(createEventList, $('#list-creation-dialog :input'));
+        let listTemplate =
+          `<li class='column sortlist column-${uniquityCount}'>
+      <div class='list list-${uniquityCount} '>
         <div class='list-header list-header-${uniquityCount}'>${createEventList}
         <button class='button delete delete-list-${uniquityCount}'>X
         </button>
         </div><ul class='list-cards list-cards-${uniquityCount}'>
-        <li class='add-new'><form class='new-card new-card-${uniquityCount}' action='index.html'>
+        <li class='add-new'>
+        <form class='new-card new-card-${uniquityCount}' action='index.html'>
         <input type='text' name='title' placeholder='Please name the card' />
+        <input type='text' name='date' class='datepicker-input'>
         <button class='button add add-${uniquityCount}' >Add new card
         </button>
         </form>
         </li>
         </ul>
         </div>
-        </div>`;
-      $(listTemplate).appendTo('div.board').fadeIn('slow');
-      $('.list-header-' + uniquityCount + ' .delete-list-' + uniquityCount).on('click', jtrello.del_list);
-      $(`form.new-card.new-card-${uniquityCount}`).on('submit', jtrello.new_card);
-      $('button.delete-' + uniquityCount).on('click', jtrello.new_card);
-      setSortable(`div.column`);
-      uniquityCount++;
-    } else {
-      alert('Inga tomma fält');
+        </li>`;
+        $(listTemplate).appendTo('ul.board1');
+        $('.list-header-' + uniquityCount + ' .delete-list-' + uniquityCount).on('click', jtrello.del_list);
+        $(`form.new-card.new-card-${uniquityCount}`).on('submit', jtrello.new_card);
+        $('button.delete-' + uniquityCount).on('click', jtrello.new_card);
+        setListsSortable('div.column');
+        uniquityCount++;
+      } else {
+        alert('Inga tomma fält');
+      }
+
+      $(function () {
+        $(".datepicker-input").datepicker();
+      });
     }
 
   }
 
   function deleteList() {
-    $(this).closest('div.column').fadeOut('slow', function () {
-      $(this).closest('div.column').remove();
+    $(this).closest('.column').fadeOut('slow', function () {
+      $(this).closest('.column').remove();
     });
 
   }
@@ -160,7 +142,7 @@ const jtrello = (function () {
     if (eventValue) {
       $(this).closest('ul.list-cards').prepend(cardTemplate);
       $('.button-' + uniquityCount).on('click', deleteCard);
-      setSortable(`.list-cards`);
+      setCardsSortable(`.list-cards`);
     } else {
       console.log('Här ska det komma upp en go\' banner eller nåt som säger: Empty Card names, nej det går inte!');
     }
@@ -187,8 +169,8 @@ const jtrello = (function () {
     captureDOMEls();
     createTabs();
     createDialogs();
-
     bindEvents();
+
   }
 
   // All kod här
@@ -209,9 +191,5 @@ $("document").ready(function () {
   jtrello.render();
   jtrello.init();
   // event.originalEvent.path[0].title.value
-  jtrello.new_list([{ value: 'testing' }]);
-  jtrello.new_list([{ value: 'testing' }]);
-  jtrello.new_list([{ value: 'testing' }]);
-  jtrello.new_list([{ value: 'testing' }]);
 
 });
