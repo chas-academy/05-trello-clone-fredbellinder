@@ -2,6 +2,34 @@ import $ from 'jquery';
 
 require('webpack-jquery-ui');
 import '../css/styles.css';
+// $.getScript('widget.js');
+
+$(function () {
+  $.widget('fred.bgColorize', {
+    options: {
+      color1: 'red',
+      color2: 'blue'
+    },
+    _create: function () {
+      let color = this._selectColor();
+      this.element.css({
+        "backgroundColor": color
+      }).fadeIn(1000)
+        .addClass('fredColor');
+    },
+
+    _selectColor: function () {
+      let color = [
+        this.options.color1,
+        this.options.color2
+      ];
+      let random = Math.floor(Math.random() * 3);
+      console.log(random);
+      return color[random];
+    }
+  });
+});
+
 
 /**
  * jtrello
@@ -36,6 +64,29 @@ const jtrello = (function () {
   function createTabs() { }
   function createDialogs() {
 
+
+    $(`<div class='dialog-div'>
+        <div class="tabs-div">
+        <ul>
+
+        <li>
+          <a href="#test">Test1</a>
+        </li>
+        <li>
+        <a href="#test2">Test2</a>
+      </li>
+        </ul>
+        <div id="test">
+        <h1>TEST1</h1>
+        </div>
+        <div id="test2">
+        <h1>TEST2</h1>
+        </div>
+        </div>
+      </div>`).dialog({
+      // modal: true,
+      autoOpen: true
+    }).tabs();
   }
 
   /*
@@ -48,6 +99,7 @@ const jtrello = (function () {
 
     DOM.$newCardForm.on('submit', jtrello.new_card);
     DOM.$deleteCardButton.on('click', jtrello.del_card);
+    $('.session-restore').on('click', render);
   }
 
   function listCounter() {
@@ -59,6 +111,7 @@ const jtrello = (function () {
     let victim = classToSort;
     console.log('dragger')
     $(victim).sortable({
+      update: function () { snapShot(); console.log('hello') },
       connectWith: classToSort,
       cursor: "pointer"
     });
@@ -68,19 +121,31 @@ const jtrello = (function () {
     let victim = classToSort;
     console.log('dragger')
     $(victim).sortable({
+      update: function () { snapShot(); console.log('hello') },
       connectWith: classToSort,
+    });
+    $('.board1').droppable({
+      update: function () { snapShot(); console.log('hello') },
+      axis: 'x'
     });
   }
 
-  $('.board1').sortable({
-    axis: 'x'
-  })
+
+  function snapShot() {
+    let abs = { data: document.body };
+    // console.log(abs.data.innerHTML);
+    localStorage.trellosession = abs.data.innerHTML;
+  }
 
 
   /* ============== Metoder för att hantera listor nedan ============== */
   function createList(event) {
+
     //$('#list-creation-dialog :inpuzt')[0].value <--denna ska funka för addnewlistknappen sen, men inte enter-tryck :(
     event.preventDefault();
+    let echoThis = $('input[name="listTitle"]').val();
+    localStorage.setItem('freddans', echoThis);
+    console.log(echoThis);
     let listCount = listCounter();
     if (listCount >= 3) {
       console.log('Maximum number of lists exceeded');
@@ -88,7 +153,7 @@ const jtrello = (function () {
       console.log(event);
       if (event != undefined) {
         event.preventDefault();
-        let createEventList = event.originalEvent.path[0].title.value;
+        let createEventList = echoThis;
         // console.log(createEventList, $('#list-creation-dialog :input'));
         let listTemplate =
           `<li class='column sortlist column-${uniquityCount}'>
@@ -123,11 +188,14 @@ const jtrello = (function () {
       });
     }
 
+
+    snapShot();
   }
 
   function deleteList() {
     $(this).closest('.column').fadeOut('slow', function () {
       $(this).closest('.column').remove();
+      snapShot();
     });
 
   }
@@ -136,6 +204,8 @@ const jtrello = (function () {
   function createCard(event) {
     event.preventDefault();
     console.log();
+    let dateDate = $('input[name="date"]').val();
+    console.log(dateDate);
 
     let eventValue = $($.parseHTML(event.originalEvent.path[0].title.value)).text().trim();
     let cardTemplate = `<li class='card card-${uniquityCount}'>${eventValue}<button class='button delete button-${uniquityCount}'>X</button>`
@@ -147,30 +217,43 @@ const jtrello = (function () {
       console.log('Här ska det komma upp en go\' banner eller nåt som säger: Empty Card names, nej det går inte!');
     }
 
+
     uniquityCount++;
+    snapShot();
+
   }
 
   function deleteCard() {
     console.log("This should delete the card you clicked on");
     $(this).closest('li.card').remove();
+    snapShot();
+
   }
 
   // Metod för att rita ut element i DOM:en
   function render() {
-    let isUpdated = Math.floor(1000 * Math.random())
-    console.log(isUpdated);
+    event.preventDefault();
+    let abs = { data: document.body };
+    let compare = localStorage.trellosession;
+    console.log(abs, compare);
+    if (abs.data.innerHTML != compare) {
+      $('body').html(localStorage.trellosession);
+      bindEvents();
+    } else {
+      console.log('They are the same');
+    }
+    setCardsSortable('.list-cards');
+    setListsSortable('div.column');
   }
   /* =================== Publika metoder nedan ================== */
 
   // Init metod som körs först
   function init() {
-    console.log(':::: Initializing JTrello :::: FROM APPJS');
     // Förslag på privata metoder
     captureDOMEls();
     createTabs();
-    createDialogs();
+    // createDialogs();
     bindEvents();
-
   }
 
   // All kod här
@@ -188,8 +271,9 @@ const jtrello = (function () {
 
 //usage
 $("document").ready(function () {
-  jtrello.render();
+  // jtrello.render();
   jtrello.init();
   // event.originalEvent.path[0].title.value
+  // $('body').bgColorize();
 
 });

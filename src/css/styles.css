@@ -158,7 +158,7 @@ ul.board1 {
 }
 
 .ui-dialog .ui-dialog-titlebar-close {
-  /* display: none; */
+  display: none;
 }
 
 .ui-dialog input {
@@ -205,4 +205,8 @@ ul.board1 {
   cursor: grabbing;
   box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.3), 0px 0px 1px rgba(0, 0, 0, 0.5);
   transform: rotate(4deg);
+}
+
+.ui-datepicker {
+  background-color: #ccc;
 }
