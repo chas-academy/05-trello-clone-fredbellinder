@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+
     <title>Fredlo</title>
 </head>
 
 <body>
+    <div>
+        <input type="checkbox" name="toggle-snapshot" class="toggle-snapshot">
+        <label for="toggle-snapshot">Check to activate session auto-save</label>
+    </div>
     <button class="session-restore">Session Restore</button>
     <div id="list-creation-dialog" title="Create new list" style="height: 40px">
         <form class="new-list-form">
@@ -20,8 +26,6 @@
         <ul class="board1">
         </ul>
     </div>
-
-    <div class="what"></div>
 
 </body>
 
