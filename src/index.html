@@ -11,22 +11,25 @@
 </head>
 
 <body>
-    <div>
-        <input type="checkbox" name="toggle-snapshot" class="toggle-snapshot">
-        <label for="toggle-snapshot">Check to activate session auto-save</label>
-    </div>
-    <button class="session-restore">Session Restore</button>
+    <h1 class="header">Fredlo</h1>
     <div id="list-creation-dialog" title="Create new list" style="height: 40px">
         <form class="new-list-form">
             <button id="new-list" class="button">Add new list</button>
             <input class='new-list' type="text" name="listTitle" placeholder="List title" />
         </form>
+        <button class="session-restore button">Session Restore</button>
+    </div>
+    <div class="toggle-snapshot-div">
+        <input type="checkbox" name="toggle-snapshot" class="toggle-snapshot">
+        <label class="toggle-snapshot" for="toggle-snapshot">Check to activate session auto-save (actively check
+            and
+            uncheck to purge
+            saved session)</label>
     </div>
     <div class="board">
         <ul class="board1">
         </ul>
     </div>
-
 </body>
 
 </html>

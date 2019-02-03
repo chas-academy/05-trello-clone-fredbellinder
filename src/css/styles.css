@@ -1,10 +1,20 @@
 html,
 body {
-  background: rgb(100, 187, 187);
+  background: rgb(45, 98, 182);
   margin: 0;
   padding: 30px 0 0;
   font-family: sans-serif;
   color: #4d4d4d;
+}
+
+h1.header {
+  margin-right: auto;
+  margin-left: auto;
+  margin-bottom: auto;
+  width: 100px;
+  background-color: #ccc;
+  border-radius: 4px;
+  border: 2px solid darkgray;
 }
 
 a {
@@ -26,6 +36,12 @@ ul li {
     padding: 0;
 }
 
+div.board {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 input {
   width: 100%;
   border: none;
@@ -41,22 +57,61 @@ input {
   word-wrap: break-word;
   text-indent: 8px;
 }
+
+form.new-list-form {
+  display: inline-block;
+  width: 60%;
+}
+
 input.new-list {
-  width: 50%;
+  width: 80%;
   margin: 20px auto;
 
+}
+div.toggle-snapshot-div {
+  width: 40%;
+ float: right;  
+ color: #ccc;
+}
+
+input.toggle-snapshot {
+  width: 25%;
+  display: inline-block;
+}
+label.toggle-snapshot {
+  width: 45%;
+  display: inline-block;
+  margin-top: auto;
+  margin-bottom: 10px;
+  height: auto;
+}
+
+div.board {
+  display: flex;
+  width: 100vw;
+}
+/* .toggle-snapshot-div {
+  display: flex;
+  margin-right: auto;
+  margin-left: auto;
+  margin-bottom: auto;
+  width: 30%;
+  
+} */
+
+button.session-restore {
+  display: inline-block;
 }
 
 div.list-creation-dialog {
   display:block;
 }
 
-.board {
-    height: 100vh;
-}
+
 ul.board1 {
   display: flex;
   flex-direction: row;
+  justify-content: space-evenly;
 }
 
 .column {
@@ -83,15 +138,18 @@ ul.board1 {
   user-select: none;
   padding: 0.5em;
 }
-
 .list-header {
   font-size: 14px;
   min-height: 38px;
-  line-height: 38px;
   font-weight: bold;
   padding: 12px 10px;
   margin: 0;
   color: #4d4d4d;
+}
+ span.list-title::parent {
+  text-overflow: clip;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .list-header .delete {
@@ -102,9 +160,16 @@ ul.board1 {
   /* z-index: 0; */
 }
 
+div.list-date-div {
+  margin: 2px;
+}
 span.list-date {
   font-size: 8px;
   margin: 0px;
+}
+
+div.card-content {
+  width: 80%;
 }
 
 span.card-date {
@@ -164,7 +229,18 @@ div.cardDate
   color: #ccc;
 }
 
+
+.toggle-snapshot {
+  display: inline-block;
+
+}
+
+div.ui-dialog {
+  min-width: fit-content;
+}
+
 .ui-dialog {
+
   background: #e2e4e6;
   border-radius: 3px;
   padding: 10px;
@@ -180,16 +256,15 @@ div.cardDate
   display: none;
 }
 
-.ui-dialog .active {
-  display: block;
-}
 
 .ui-dialog input {
   min-height: 24px;
+  border: 1px darkgray solid;
 }
 
 .ui-dialog button {
   margin-right: 8px;
+  border: 1px darkgray solid;
 }
 
 .ui-button,
@@ -228,8 +303,4 @@ div.cardDate
   cursor: grabbing;
   box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.3), 0px 0px 1px rgba(0, 0, 0, 0.5);
   transform: rotate(4deg);
-}
-
-.ui-datepicker {
-  background-color: #ccc;
 }

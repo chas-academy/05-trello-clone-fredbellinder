@@ -2,8 +2,6 @@ import $ from 'jquery';
 
 require('webpack-jquery-ui');
 import '../css/styles.css';
-// import { spawn } from 'child_process';
-// $.getScript('widget.js');
 
 $(function () {
     $.widget('fred.bgColorize', {
@@ -24,7 +22,6 @@ $(function () {
                 this.options.color2
             ];
             let random = Math.floor(Math.random() * 3);
-            // console.log(random);
             return color[random];
         }
     });
@@ -44,7 +41,6 @@ const jtrello = (function () {
     // Referens internt i modulen för DOM element
     let DOM = {};
     let uniquityCount = 0;
-    // let elementToEdit
     let elementToRender;
 
     /* =================== Privata metoder nedan ================= */
@@ -58,53 +54,54 @@ const jtrello = (function () {
         DOM.$deleteListButton = $('.list-header > button.delete');
         DOM.$newCardForm = $('form.new-card');
         DOM.$deleteCardButton = $('.card > button.delete');
-
+        DOM.$cardContent = $('div.card-content');
+        DOM.$listContent = $('div.list-content');
+        DOM.$closeDialog = $('a.edit-close-dialog');
+        DOM.$dialog = $("div#dialog.ui-dialog-content");
+        DOM.$sessionCheck = $('input:checkbox')
+        DOM.$elementToEdit;
+        DOM.$editTitleBtn = $('button.edit-btn-title');
+        DOM.$editDateBtn = $('button.edit-btn-date');
     }
     function bindEvents() {
-        // $('.edit-btn-card').off().on('click', function () {
-        //     editCard(elementToEdit);
-        // });
-        // $('.edit-btn-list').off().on('click', function () {
-        //     editList(elementToEdit);
-        // });
-        $('a.edit-close-dialog').off().on('click', function () {
+
+        DOM.$closeDialog.off().on('click', function () {
             toggleDialog();
-            // elementToEdit = this;
-            // console.log(elementToEdit);
         });
-        $('div.list-content').off().on('click', function () {
+        DOM.$listContent.off().on('click', function () {
             DOM.$elementToEdit = $(this);
-            console.log(DOM.$elementToEdit);
             elementToRender = DOM.$elementToEdit.children('div > span.list-title').text().trim();
             $('span.ui-dialog-title').text(`Edit List ${elementToRender}`);
-            createDialogs();
             toggleDialog();
             editListsAndCards(DOM.$elementToEdit, 'list');
-        })
-        $('div.card-content').off().on('click', function () {
+        });
+        DOM.$cardContent.off().on('click', function () {
             DOM.$elementToEdit = $(this);
-            console.log(DOM.$elementToEdit);
             elementToRender = DOM.$elementToEdit.children('div > span.card-title').text().trim();
             $('span.ui-dialog-title').text(`Edit card: ${elementToRender}`);
-            createDialogs();
             toggleDialog();
             editListsAndCards(DOM.$elementToEdit, 'card');
         });
-
-        // $('input.toggle-snapshot').('click', function () {});
 
         DOM.$newListForm.off().on('submit', jtrello.new_list);
         DOM.$deleteListButton.off().on('click', jtrello.del_list);
         DOM.$newCardForm.off().on('submit', jtrello.new_card);
         DOM.$deleteCardButton.off().on('click', jtrello.del_card);
         $('.session-restore').off().on('click', jtrello.render);
-        // $('.card').off().on('click', $('#dialog').toggle('option'));
+        DOM.$sessionCheck.change(function () {
+            if ($(this).is(':checked')) {
+                snapShot();
+
+            } else if (!$(this).is(':checked')) {
+                localStorage.trellosession = null;
+            }
+        });
+
     }
 
     function createTabs() { }
 
     function createDialogs() {
-        console.log('createDialogs');
         $(`<div id="dialog" class='dialog-div' title="Edit ${DOM.$elementToEdit}">
         <div class="tabs-div">
         <ul>
@@ -116,7 +113,7 @@ const jtrello = (function () {
         </li>
         </ul>
         <div id="edit-title">
-        <h3>Edit Title</h3>
+        <h5>Edit Title</h5>
         <form>
         <input type="text" name="edit-title" placeholder="Enter Title" required/>
         <button class="edit-btn-title">Save</button>
@@ -124,15 +121,15 @@ const jtrello = (function () {
         <a class="edit-close-dialog" href="javascript:;"><small>Close</small></a>
         </div>
         <div id="edit-due-date">
-        <h3> Due Date Edit</h3>
+        <h5>Enter due date, leave blank to remove set date.</h5>
         <form>
-        <input type='text' name='edit-date' class='datepicker-input-date' placeholder="Pick date from calendar" required/>
+        <input type='text' name='edit-date' class='datepicker-input-date' placeholder="Due Date" required/>
         <button class="edit-btn-date">Save</button>
         </form>
         <a class="edit-close-dialog" href="javascript:;"><small>Close</small></a>
         </div>
         </div>
-      </div>`).dialog({
+        </div>`).dialog({
             modal: false,
             autoOpen: false,
             closeText: 'X',
@@ -151,12 +148,11 @@ const jtrello = (function () {
     */
 
     function toggleDialog() {
-        console.log('toggleDialog')
-        let status = $("#dialog").dialog("isOpen");
+        let status = DOM.$dialog.dialog('isOpen');
         if (status) {
-            $("#dialog").dialog('close');
+            DOM.$dialog.dialog('close');
         } else {
-            $("#dialog").dialog('open');
+            DOM.$dialog.dialog('open');
         }
     }
 
@@ -168,7 +164,7 @@ const jtrello = (function () {
     function setCardsSortable(classToSort) {
         let victim = classToSort;
         $(victim).sortable({
-            update: function () { snapShot(); console.log('hello'); },
+            update: function () { snapShot(); },
             connectWith: classToSort,
             cursor: "pointer",
             dropOnEmpty: true
@@ -177,7 +173,7 @@ const jtrello = (function () {
 
     function setListsSortable() {
         $('.board1').sortable({
-            update: function () { snapShot(); console.log('hello') },
+            update: function () { snapShot(); },
             axis: 'x'
         });
     }
@@ -189,39 +185,35 @@ const jtrello = (function () {
     /* ============== Metoder för att hantera listor nedan ============== */
     function createList(event) {
 
-        //$('#list-creation-dialog :inpuzt')[0].value <--denna ska funka för addnewlistknappen sen, men inte enter-tryck :(
         event.preventDefault();
         let echoThis = $('input[name="listTitle"]').val() || 'untitled';
         let listCount = listCounter();
-        if (listCount >= 3) {
-            console.log('Maximum number of lists exceeded');
+        if (listCount >= 5) {
+            alert('Maximum number of lists exceeded');
         } else {
             if (event != undefined) {
                 event.preventDefault();
-                // console.log(createEventList, $('#list-creation-dialog :input'));
                 let listTemplate =
                     `<li class='column sortlist column-${uniquityCount}'>
-        <div class='list list-${uniquityCount} '>
-        <div class='list-header list-header-${uniquityCount}'><div class="list-content">
-        <div>
-        <span class="list-title">${echoThis}
-        </span>
-        </div>
-        <div class="list-date-div">
-        <span class="list-date">
-        </span>
-        </div></div><button class='button delete delete-list delete-list-${uniquityCount}'>X
-        </button>
-        </div><ul class='list-cards list-cards-${uniquityCount}'>
-        <li class='add-new'>
-        <form class='new-card new-card-${uniquityCount}' action='index.html'>
-        <input type='text' name='title' placeholder='Please name the card' />
-        <input type='text' name='pickedDate' class='datepicker-input'>
-        <button class='button add add-${uniquityCount}' >Add new card
-        </button></form></li></ul></div></li>`;
+                    <div class='list list-${uniquityCount} '>
+                    <div class='list-header list-header-${uniquityCount}'><div class="list-content">
+                    <div>
+                    <span class="list-title">${echoThis}
+                    </span>
+                    </div>
+                    <div class="list-date-div">
+                    <span class="list-date">
+                    </span>
+                    </div></div><button class='button delete delete-list delete-list-${uniquityCount}'>X
+                    </button>
+                    </div><ul class='list-cards list-cards-${uniquityCount}'>
+                    <li class='add-new'>
+                    <form class='new-card new-card-${uniquityCount}' action='index.html'>
+                    <input type='text' name='title' placeholder='Please name the card' />
+                    <input type='text' name='pickedDate' class='datepicker-input' placeholder="Due date (optional)">
+                    <button class='button add add-${uniquityCount}' >Add new card
+                    </button></form></li></ul></div></li>`;
                 $(listTemplate).appendTo('ul.board1');
-                // $('.list-header-' + uniquityCount + ' .delete-list-' + uniquityCount).off().on('click', jtrello.del_list);
-                // $('button.delete-' + uniquityCount).off().on('click', jtrello.new_card);
                 setListsSortable();
                 setCardsSortable();
                 uniquityCount++;
@@ -236,8 +228,8 @@ const jtrello = (function () {
         captureDOMEls();
         bindEvents();
         snapShot();
-        createDialogs();
         setCardsSortable('.list-cards');
+        setListsSortable();
         $('input[name="listTitle"]').val('');
     }
 
@@ -259,10 +251,9 @@ const jtrello = (function () {
         let cardTemplate = `<li class='card card-${uniquityCount}'><div class="card-content"><div><span class="card-title">${cardTitle}</span></div><div class="card-date-div"><span class="card-date">${cardDate}</span></div></div><button class='button delete button-${uniquityCount}'>X</button>`
         if (cardTitle) {
             $(this).closest('ul.list-cards').prepend(cardTemplate);
-            // $(`.button-${uniquityCount}`).off().on('click', deleteCard);
             setCardsSortable(`.list-cards`);
         } else {
-            console.log('Här ska det komma upp en go\' banner eller nåt som säger: Empty Card names, nej det går inte!');
+            alert('Här ska det komma upp en go\' banner eller nåt som säger: Empty Card names, nej det går inte!');
         }
         uniquityCount++;
         snapShot();
@@ -273,7 +264,6 @@ const jtrello = (function () {
     }
 
     function deleteCard() {
-        console.log("This should delete the card you clicked on");
         $(this).closest('li.card').remove();
         $("#dialog").dialog('close');
         snapShot();
@@ -282,11 +272,10 @@ const jtrello = (function () {
 
     // Metod för att rita ut element i DOM:en
     function snapShot() {
+        let session = $(`div.board`)[0];
         let state = $('input.toggle-snapshot:checked').length;
-        console.log(state);
         if (state) {
-            let body = { data: document.body };
-            // console.log(abs.data.innerHTML);
+            let body = { data: session };
             localStorage.trellosession = body.data.innerHTML;
         }
 
@@ -294,47 +283,36 @@ const jtrello = (function () {
 
     function render() {
         event.preventDefault();
-        let abs = { data: document.body };
+        let session = $(`div.board`)[0];
+        let abs = { data: session };
         let compare = localStorage.trellosession;
-        // console.log(abs, compare);
-        if (abs.data.innerHTML != compare) {
-            $('body').html(localStorage.trellosession);
+        if (abs.data.innerHTML != compare && localStorage.trellosession != 'null') {
+            $('div.board').html(localStorage.trellosession);
         } else {
-            console.log('They are the same');
+            alert('Session already restored.')
         }
-        // captureDOMEls();
-        // setCardsSortable('.list-cards');
-        // setListsSortable();
-        // createDialogs();
-        // bindEvents();
+        captureDOMEls();
+        setCardsSortable('.list-cards');
+        setListsSortable();
+        bindEvents();
     }
 
-    function editListsAndCards(element, token) {
-        // event.preventDefault();
-        // console.log('ELAC: ' + element);
+    function editListsAndCards(element) {
         let tester = $(element).children();
         let testerChildren = $(tester).children();
-        console.log('freddans', tester, testerChildren);
-
-        $('button.edit-btn-title').off().on('click', function () {
+        DOM.$editTitleBtn.off().on('click', function () {
             event.preventDefault();
-            let title = $('input[name="edit-title"]').val();
-            testerChildren.first().text(title);
+            let title = $('input[name="edit-title"]').val().trim();
+            testerChildren.first().text(title || 'untitled');
+            $('input[name="edit-title"]').val('');
         });
-        $('button.edit-btn-date').off().on('click', function () {
+        DOM.$editDateBtn.off().on('click', function () {
             event.preventDefault();
-            let date = $('input[name="edit-date"]').val();
-            testerChildren.last().text(date);
+            let date = $('input[name="edit-date"]').val().trim();
+            testerChildren.last().text(date || null);
+            $('input[name="edit-date"]').val('');
         });
-
     }
-
-
-    // function editList() {
-    //     event.preventDefault();
-    //     let title = $('input[name="edit-title"]').val();
-    //     console.log(title);
-    // }
     /* =================== Publika metoder nedan ================== */
 
     // Init metod som körs först
@@ -361,9 +339,7 @@ const jtrello = (function () {
 
 //usage
 $("document").ready(function () {
-    // jtrello.render();
     jtrello.init();
-    // event.originalEvent.path[0].title.value
     $('div.list').bgColorize();
 
 });
